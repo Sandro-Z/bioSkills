@@ -7,8 +7,8 @@ Decision-grade batch correction for pooled CRISPR screens. Covers diagnosis (PCA
 ## Prerequisites
 
 ```bash
-pip install pycombat pandas numpy scipy scikit-learn matplotlib seaborn
-pip install mageck
+pip install combat        # provides combat.pycombat; PyPI 'pycombat' is a different project pandas numpy scipy scikit-learn matplotlib seaborn
+conda install -c bioconda mageck   # not on PyPI
 # R (for SVA, RUVSeq, limma)
 R -e "BiocManager::install(c('sva', 'RUVSeq', 'limma'))"
 ```

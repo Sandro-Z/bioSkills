@@ -10,7 +10,7 @@ primary_tool: pyComBat
 Reference examples tested with: pyComBat 0.3.3+ (epigenelabs/pyComBat), MAGeCK 0.5.9+, R/limma 3.58+, sva 3.50+, RUVSeq 1.36+, pandas 2.2+, numpy 1.26+, scikit-learn 1.4+, scipy 1.12+.
 
 Before using code patterns, verify installed versions match. If versions differ:
-- Python: `pip show pycombat`; `from combat.pycombat import pycombat`
+- Python: `pip show combat`; `from combat.pycombat import pycombat`
 - R: `packageVersion('sva')`; `?ComBat`; `packageVersion('RUVSeq')`; `?RUVg`
 
 If code throws ImportError, AttributeError, or TypeError, introspect the installed package and adapt the example to match the actual API rather than retrying.
@@ -22,7 +22,7 @@ If code throws ImportError, AttributeError, or TypeError, introspect the install
 - Python: `pyComBat.pycombat` for empirical-Bayes correction
 - Python: explicit batch covariates in `mageck mle --design-matrix`
 - R: `sva::ComBat`, `RUVSeq::RUVg`, `limma::removeBatchEffect`
-- CLI: `chronos-cn` natively handles screen-batch covariates
+- Python: Chronos (`crispr_chronos`) natively handles screen-batch covariates
 
 ## Batch Sources in CRISPR Screens
 
@@ -102,9 +102,9 @@ def combat_correct(counts_df, batch_vector, condition_vector=None):
     data = np.log2(counts_df.values + 1)
     if condition_vector is not None:
         mod = pd.get_dummies(condition_vector).values.astype(float)
-        corrected = pycombat(data, np.array(batch_vector), mod=mod)
+        corrected = pycombat(data, list(batch_vector), mod=mod)      # data must be a DataFrame
     else:
-        corrected = pycombat(data, np.array(batch_vector))
+        corrected = pycombat(data, list(batch_vector))               # data must be a DataFrame
     return pd.DataFrame(np.power(2, corrected) - 1,
                          index=counts_df.index, columns=counts_df.columns).clip(lower=0)
 ```
@@ -267,8 +267,8 @@ def ntc_anchored_normalize(counts_df, ntc_sgrna_names, target_median=1000):
 - Johnson WE et al. 2007. *Biostatistics* 8:118. Original ComBat algorithm.
 - Leek JT et al. 2012. *Bioinformatics* 28:882. SVA package.
 - Risso D et al. 2014. *Nat Biotechnol* 32:896. RUVSeq.
-- Pacini C et al. 2021. *Cell Syst* 12:1132. CRISPR-screen batch effects analysis.
-- Hayer KE et al. 2023. *Genome Biol* 24:1. Benchmark of normalization methods for CRISPR screens.
+- Pacini C et al. 2021. *Nat Commun* 12:1661. Integrated cross-study dependencies; cross-screen batch-effect correction.
+- Vinceti A et al. 2024. *Genome Biol* 25:192. Benchmark of methods for correcting biases in CRISPR-Cas9 screening data.
 
 ## Related Skills
 
