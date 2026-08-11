@@ -32,6 +32,32 @@ DRY_RUN=false
 CATEGORY_FILTER=""
 FORCE=false
 
+# Top-level directories that are not skill categories. clawhub-installer is a
+# ClawHub meta-skill living at the repo root; it must never be installed or counted.
+NON_SKILL_DIRS=("clawhub-installer")
+
+is_non_skill_dir() {
+    local name="$1"
+    for excluded in "${NON_SKILL_DIRS[@]}"; do
+        [ "$name" = "$excluded" ] && return 0
+    done
+    return 1
+}
+
+# A bioSkill is <category>/<skill>/SKILL.md. -mindepth 3 excludes any root-level
+# SKILL.md (the meta-skill); the name check excludes anything nested under one.
+find_skill_files() {
+    local skill_file relative top_dir
+    while IFS= read -r skill_file; do
+        relative="${skill_file#"$SCRIPT_DIR"/}"
+        top_dir="${relative%%/*}"
+        if is_non_skill_dir "$top_dir"; then
+            continue
+        fi
+        echo "$skill_file"
+    done < <(find "$SCRIPT_DIR" -mindepth 3 -name "SKILL.md" -type f | sort)
+}
+
 print_common_options() {
     echo "  --global              Install to default global location (default)"
     echo "  --project [PATH]      Install to project/workspace directory"
@@ -49,12 +75,10 @@ print_common_options() {
 list_skills() {
     echo "Available bioSkills:"
     echo ""
-    find "$SCRIPT_DIR" -name "SKILL.md" -type f | sort | while read -r skill_file; do
+    find_skill_files | while read -r skill_file; do
         local skill_dir=$(dirname "$skill_file")
         local skill_name=$(basename "$skill_dir")
         local category=$(basename "$(dirname "$skill_dir")")
-
-        [ "$category" = "$(basename "$SCRIPT_DIR")" ] || [ "$category" = "." ] && continue
 
         local description=$(grep "^description:" "$skill_file" | head -1 | sed 's/description: //')
         echo "  $category/$skill_name"
@@ -62,7 +86,7 @@ list_skills() {
         echo ""
     done
 
-    local total=$(find "$SCRIPT_DIR" -mindepth 3 -name "SKILL.md" -type f | wc -l | tr -d ' ')
+    local total=$(find_skill_files | wc -l | tr -d ' ')
     echo "Total skills: $total"
 }
 
@@ -77,8 +101,6 @@ validate_all_skills() {
         local skill_dir=$(dirname "$skill_file")
         local skill_name=$(basename "$skill_dir")
         local category=$(basename "$(dirname "$skill_dir")")
-
-        [ "$category" = "$(basename "$SCRIPT_DIR")" ] || [ "$category" = "." ] && continue
 
         total=$((total + 1))
         local errors=()
@@ -110,7 +132,7 @@ validate_all_skills() {
             passed=$((passed + 1))
             [ "$VERBOSE" = true ] && echo -e "  ${GREEN}PASS${NC} $category/$skill_name"
         fi
-    done < <(find "$SCRIPT_DIR" -name "SKILL.md" -type f | sort)
+    done < <(find_skill_files)
 
     echo ""
     echo "Validation complete: $passed/$total passed"
@@ -132,8 +154,12 @@ validate_categories() {
     local available=()
     for d in "$SCRIPT_DIR"/*/; do
         [ ! -d "$d" ] && continue
-        if find "$d" -maxdepth 2 -name "SKILL.md" -print -quit 2>/dev/null | grep -q .; then
-            available+=("$(basename "$d")")
+        local name=$(basename "$d")
+        if is_non_skill_dir "$name"; then
+            continue
+        fi
+        if find "$d" -mindepth 2 -maxdepth 2 -name "SKILL.md" -print -quit 2>/dev/null | grep -q .; then
+            available+=("$name")
         fi
     done
 
@@ -198,7 +224,6 @@ install_skills() {
         local skill_name=$(basename "$skill_dir")
         local category=$(basename "$(dirname "$skill_dir")")
 
-        [ "$category" = "$(basename "$SCRIPT_DIR")" ] || [ "$category" = "." ] && continue
         category_matches "$category" || continue
 
         local full_skill_name="bio-${category}-${skill_name}"
@@ -237,7 +262,7 @@ install_skills() {
 
         installed=$((installed + 1))
         echo "  Installed: $full_skill_name"
-    done < <(find "$SCRIPT_DIR" -name "SKILL.md" -type f | sort)
+    done < <(find_skill_files)
 
     echo ""
     if [ "$DRY_RUN" = true ]; then
