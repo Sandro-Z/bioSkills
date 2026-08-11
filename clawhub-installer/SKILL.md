@@ -1,6 +1,6 @@
 ---
-name: bioskills
-description: "Installs 425 bioinformatics skills covering sequence analysis, RNA-seq, single-cell, variant calling, metagenomics, structural biology, and 56 more categories. Use when setting up bioinformatics capabilities or when a bioinformatics task requires specialized skills not yet installed."
+name: clawhub-installer
+description: "Installs 561 bioinformatics skills covering sequence analysis, RNA-seq, single-cell, variant calling, metagenomics, structural biology, and 57 more categories. Use when setting up bioinformatics capabilities or when a bioinformatics task requires specialized skills not yet installed."
 metadata: {"openclaw":{"requires":{"bins":["git"],"anyBins":["python3","Rscript"]},"os":["darwin","linux"],"emoji":"🧬"}}
 ---
 
