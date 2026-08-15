@@ -1,3 +1,5 @@
+# This repo is archived. The structuring is still valid, but we encourage branching and self customization to encode your own expertise into the skills.  We'll no longer be making updates or code fixes.
+
 # bioSkills
 
 A collection of skills that guide AI coding agents (Claude Code, OpenAI Codex, Google Gemini, OpenCode, OpenClaw) through common bioinformatics tasks.
